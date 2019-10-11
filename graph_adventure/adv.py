@@ -7,6 +7,33 @@ import random
 # Load world
 world = World()
 
+class Queue():
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+    def size(self):
+        return len(self.queue)
+
+class Stack():
+    def __init__(self):
+        self.stack = []
+    def push(self, value):
+        self.stack.append(value)
+    def pop(self):
+        if self.size() > 0:
+            return self.stack.pop()
+        else:
+            return None
+    def size(self):
+        return len(self.stack)
+
+
 # You may uncomment the smaller graphs for development and testing purposes.
 
 # roomGraph={0: [(3, 5), {'n': 1}], 1: [(3, 6), {'s': 0, 'n': 2}], 2: [(3, 7), {'s': 1}]}
@@ -19,18 +46,79 @@ world.loadGraph(roomGraph)
 world.printRooms()
 player = Player("Name", world.startingRoom)
 
+def bfs(starting_room, visited_list):
+    queue = Queue()
+    queue.enqueue([starting_room])
+    while queue.size() is not 0:
+        path = queue.dequeue()
+        room = path[-1]
+        exits = room.getExits()
+        unexplored = []
+        for exit in exits:
+            if room.getRoomInDirection(exit) not in visited_list:
+                return path
+        for next in room.getExits():
+            new_path = list(path)
+            new_path.append(room.getRoomInDirection(next))
+            queue.enqueue(new_path)
+
 
 # FILL THIS IN
-traversalPath = ['n', 's']
+traversalPath = []
 
 
 # TRAVERSAL TEST
 visited_rooms = set()
 player.currentRoom = world.startingRoom
 visited_rooms.add(player.currentRoom)
-for move in traversalPath:
-    player.travel(move)
-    visited_rooms.add(player.currentRoom)
+
+stack = Stack()
+
+queue = Queue()
+
+
+
+while len(visited_rooms) < 500:
+    
+    exits = player.currentRoom.getExits()
+    unexplored_list = []
+
+    for i in range(len(exits)):
+        if player.currentRoom.getRoomInDirection(exits[i]) not in visited_rooms:
+            unexplored_list.append(exits[i])
+
+        
+    if len(unexplored_list) > 0:
+        random.shuffle(unexplored_list)
+        direction = unexplored_list[0]
+        player.travel(direction)
+        stack.push(direction)
+        traversalPath.append(direction)
+        visited_rooms.add(player.currentRoom)
+        continue
+
+    new_path = bfs(player.currentRoom, visited_rooms)
+    print("bfs")
+    print(len(new_path))
+    for i in range(len(new_path)):
+        if new_path[i] == player.currentRoom:
+            continue
+        exitRooms = player.currentRoom.getExits()
+        rooms = []
+
+        for x in range(len(exitRooms)):
+            if player.currentRoom.getRoomInDirection(exitRooms[x]) == new_path[i]:
+                player.travel(exitRooms[x])
+                traversalPath.append(exitRooms[x])
+    
+
+    
+
+
+          
+
+
+
 
 if len(visited_rooms) == len(roomGraph):
     print(f"TESTS PASSED: {len(traversalPath)} moves, {len(visited_rooms)} rooms visited")
