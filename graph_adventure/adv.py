@@ -46,6 +46,22 @@ world.loadGraph(roomGraph)
 world.printRooms()
 player = Player("Name", world.startingRoom)
 
+def bfs(starting_room, visited_list):
+    queue = Queue()
+    queue.enqueue([starting_room])
+    while queue.size() is not 0:
+        path = queue.dequeue()
+        room = path[-1]
+        exits = room.getExits()
+        unexplored = []
+        for exit in exits:
+            if room.getRoomInDirection(exit) not in visited_list:
+                return path
+        for next in room.getExits():
+            new_path = list(path)
+            new_path.append(room.getRoomInDirection(next))
+            queue.enqueue(new_path)
+
 
 # FILL THIS IN
 traversalPath = []
@@ -58,12 +74,13 @@ visited_rooms.add(player.currentRoom)
 
 stack = Stack()
 
+queue = Queue()
+
 
 
 while len(visited_rooms) < 500:
     
     exits = player.currentRoom.getExits()
-    #print(f"exits------------------{exits}")
     unexplored_list = []
 
     for i in range(len(exits)):
@@ -79,28 +96,28 @@ while len(visited_rooms) < 500:
         traversalPath.append(direction)
         visited_rooms.add(player.currentRoom)
         continue
+
+    new_path = bfs(player.currentRoom, visited_rooms)
+    print("bfs")
+    print(len(new_path))
+    for i in range(len(new_path)):
+        if new_path[i] == player.currentRoom:
+            continue
+        exitRooms = player.currentRoom.getExits()
+        rooms = []
+
+        for x in range(len(exitRooms)):
+            if player.currentRoom.getRoomInDirection(exitRooms[x]) == new_path[i]:
+                player.travel(exitRooms[x])
+                traversalPath.append(exitRooms[x])
     
-    last_move = stack.pop()
-    #print(f"STACK POPPED ---------------- DIRECTION {last_move}")
-    if last_move == "n":
-        if player.currentRoom.getRoomInDirection("s") is not None:
-            player.travel("s")
-            traversalPath.append("s")
-    elif last_move == "s":
-        if player.currentRoom.getRoomInDirection("n") is not None:
-            player.travel("n")
-            traversalPath.append("n")
-    elif last_move == "e":
-        if player.currentRoom.getRoomInDirection("w") is not None:
-            player.travel("w")
-            traversalPath.append("w")
-    elif last_move == "w":
-        if player.currentRoom.getRoomInDirection("e") is not None:
-            player.travel("e")
-            traversalPath.append("e")
+
+    
 
 
           
+
+
 
 
 if len(visited_rooms) == len(roomGraph):
